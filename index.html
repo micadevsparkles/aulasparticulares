@@ -1,134 +1,182 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Micael - Gestão de Aulas</title>
+    <title>Gerenciador de Aulas</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-    <header>
-        <div id="greeting">Carregando...</div>
-        <div class="menu-icon" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
-        </div>
+    <header class="top-header">
+        <h1 id="greeting" class="greeting">Olá, Micael</h1>
+        <button id="menu-toggle" class="menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </header>
 
-    <nav id="sidebar">
-        <div class="close-menu" onclick="toggleMenu()">&times;</div>
-        <ul>
-            <li onclick="showView('home')"><i class="fas fa-home"></i> Dashboard</li>
-            <li onclick="showView('alunos')"><i class="fas fa-user-graduate"></i> Alunos</li>
-            <li onclick="showView('planejamento')"><i class="fas fa-calendar-alt"></i> Planejamento</li>
-            <li onclick="showView('financas')"><i class="fas fa-wallet"></i> Finanças</li>
-        </ul>
-    </nav>
+    <div class="app-container">
+        <nav id="sidebar" class="sidebar">
+            <ul class="nav-links">
+                <li data-target="home-view" class="active">Início</li>
+                <li data-target="alunos-view">Alunos</li>
+                <li data-target="planejamento-view">Planejamento</li>
+                <li data-target="financas-view">Finanças</li>
+            </ul>
+        </nav>
 
-    <main id="content">
-        <section id="view-home" class="view">
-            <div class="card">
-                <h3><i class="fas fa-clock"></i> Próximos 7 Dias</h3>
-                <div id="next-7-days" class="list-container"></div>
-            </div>
-            <div class="card">
-                <h3><i class="fas fa-history"></i> Últimos 7 Dias</h3>
-                <div id="last-7-days" class="list-container"></div>
-            </div>
-        </section>
+        <main class="main-content">
+            
+            <section id="home-view" class="view active">
+                <div class="schedule-container">
+                    <h2>Próximos 7 dias</h2>
+                    <ul id="next-7-days" class="schedule-list">
+                        <li class="empty-msg">Carregando aulas...</li>
+                    </ul>
+                </div>
+                <div class="schedule-container">
+                    <h2>Últimos 7 dias</h2>
+                    <ul id="last-7-days" class="schedule-list">
+                        <li class="empty-msg">Carregando aulas...</li>
+                    </ul>
+                </div>
+            </section>
 
-        <section id="view-alunos" class="view" style="display:none;">
-            <div class="view-header">
-                <button class="btn-add" onclick="openModal('modal-aluno')">+</button>
-                <input type="text" id="search-aluno" placeholder="Pesquisar aluno..." oninput="filterAlunos()">
-            </div>
-            <div id="lista-alunos" class="list-container"></div>
-        </section>
+            <section id="alunos-view" class="view hidden">
+                <div class="view-header">
+                    <button class="add-btn" id="add-aluno-btn">+</button>
+                    <h2>Lista de Alunos</h2>
+                    <input type="text" id="search-alunos" class="search-bar" placeholder="Pesquisar aluno...">
+                </div>
+                <ul id="alunos-list" class="data-list"></ul>
+            </section>
 
-        <section id="view-planejamento" class="view" style="display:none;">
-            <div class="view-header">
-                <button class="btn-add" onclick="openModal('modal-aula')">+</button>
-                <input type="text" id="search-aula" placeholder="Pesquisar aula..." oninput="filterPlanejamento()">
-            </div>
-            <div id="cronograma-completo" class="list-container"></div>
-        </section>
+            <section id="planejamento-view" class="view hidden">
+                <div class="view-header">
+                    <button class="add-btn" id="add-planejamento-btn">+</button>
+                    <h2>Cronograma Completo</h2>
+                    <input type="text" id="search-planejamento" class="search-bar" placeholder="Pesquisar aula...">
+                </div>
+                <ul id="planejamento-list" class="schedule-list full-schedule"></ul>
+            </section>
 
-        <section id="view-financas" class="view" style="display:none;">
-            <div class="total-badge">
-                <span>Total Pendente:</span>
-                <strong id="total-geral">R$ 0,00</strong>
-            </div>
-            <div id="lista-financeiro" class="list-container"></div>
-        </section>
-    </main>
+            <section id="financas-view" class="view hidden">
+                <div class="finance-total-container">
+                    <h3>Total Pendente Geral</h3>
+                    <h1 id="total-pendente-geral">R$ 0,00</h1>
+                </div>
+                <div class="finance-list-container">
+                    <h3>Valores Pendentes por Aluno</h3>
+                    <ul id="financas-list" class="data-list"></ul>
+                </div>
+            </section>
 
-    <div id="modal-aluno" class="modal-overlay" style="display:none;">
+        </main>
+    </div>
+
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="modal-aluno" class="modal">
         <div class="modal-content">
-            <h2 id="modal-aluno-title">Novo Aluno</h2>
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-aluno-title">Adicionar Aluno</h2>
             <form id="form-aluno">
-                <input type="hidden" id="aluno-id-old">
-                <input type="text" id="al-nome" placeholder="Nome Completo" required>
-                <input type="text" id="al-end" placeholder="Endereço (Rua, nº)">
-                <input type="text" id="al-cid" placeholder="Cidade">
-                <input type="text" id="al-bairro" placeholder="Bairro">
-                <input type="text" id="al-resp" placeholder="Responsável">
-                <input type="text" id="al-whats" placeholder="WhatsApp Responsável">
-                <select id="al-tipo">
-                    <option value="Reforço">Reforço</option>
-                    <option value="Inglês">Inglês</option>
-                    <option value="Espanhol">Espanhol</option>
-                    <option value="Português">Português</option>
-                    <option value="Lição kids 7-9">Lição kids 7-9</option>
-                    <option value="Lição kids 4-6">Lição kids 4-6</option>
-                    <option value="Lição kids GC">Lição kids GC</option>
-                    <option value="Lição Link GC">Lição Link GC</option>
-                    <option value="Ministração livre Link">Ministração livre Link</option>
-                </select>
-                <input type="text" id="al-dias" placeholder="Dias (Segunda, Terça...)">
-                <div class="row">
-                    <input type="time" id="al-hora">
-                    <input type="number" id="al-duracao" placeholder="Duração (h)">
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeModal('modal-aluno')">Cancelar</button>
-                    <button type="button" id="btn-delete-aluno" class="btn-delete" style="display:none;" onclick="deleteAluno()">Excluir</button>
-                    <button type="submit" class="btn-save">Salvar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="modal-aula" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <h2 id="modal-aula-title">Novo Planejamento</h2>
-            <form id="form-aula">
-                <input type="hidden" id="aula-id-old">
-                <select id="au-aluno" required></select>
-                <input type="date" id="au-data" required>
-                <input type="time" id="au-hora" required>
-                <select id="au-tipo">
-                    <option value="Reforço">Reforço</option>
-                    <option value="Inglês">Inglês</option>
+                <input type="hidden" id="aluno-rowIndex">
+                <div class="form-group"><label>Nome</label><input type="text" id="aluno-nome" required></div>
+                <div class="form-group"><label>Endereço</label><input type="text" id="aluno-endereco"></div>
+                <div class="form-group"><label>Cidade</label><input type="text" id="aluno-cidade"></div>
+                <div class="form-group"><label>Bairro</label><input type="text" id="aluno-bairro"></div>
+                <div class="form-group"><label>Responsável</label><input type="text" id="aluno-responsavel"></div>
+                <div class="form-group"><label>WhatsApp Responsável</label><input type="text" id="aluno-whatsapp"></div>
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="aluno-tipo">
+                        <option value="Reforço">Reforço</option>
+                        <option value="Inglês">Inglês</option>
+                        <option value="Espanhol">Espanhol</option>
+                        <option value="Português">Português</option>
+                        <option value="Lição kids 7-9">Lição kids 7-9</option>
+                        <option value="Lição kids 4-6">Lição kids 4-6</option>
+                        <option value="Lição kids GC">Lição kids GC</option>
+                        <option value="Lição Link GC">Lição Link GC</option>
+                        <option value="Ministração livre Link">Ministração livre Link</option>
                     </select>
-                <input type="text" id="au-materia" placeholder="Matéria">
-                <textarea id="au-conteudo" placeholder="Conteúdo da aula"></textarea>
-                <select id="au-status">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Concluída">Concluída</option>
-                    <option value="Cancelada">Cancelada</option>
-                    <option value="Adiada">Adiada</option>
-                </select>
-                <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeModal('modal-aula')">Cancelar</button>
-                    <button type="button" id="btn-delete-aula" class="btn-delete" style="display:none;" onclick="deleteAula()">Excluir</button>
+                </div>
+                <div class="form-group"><label>Dias (Ex: Segunda, Terça)</label><input type="text" id="aluno-dias"></div>
+                <div class="form-group"><label>Hora (hh:mm)</label><input type="text" id="aluno-hora"></div>
+                <div class="form-group"><label>Duração (horas, ex: 1.5)</label><input type="text" id="aluno-duracao"></div>
+                <div class="form-actions">
+                    <button type="button" id="btn-delete-aluno" class="btn-danger hidden">Excluir</button>
                     <button type="submit" class="btn-save">Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="loading" class="overlay">Carregando dados...</div>
+    <div id="modal-planejamento" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-planejamento-title">Adicionar Aula</h2>
+            <form id="form-planejamento">
+                <input type="hidden" id="plan-rowIndex">
+                <div class="form-group">
+                    <label>Aluno</label>
+                    <select id="plan-aluno" required></select>
+                </div>
+                <div class="form-group"><label>Data (Texto livre ou YYYY-MM-DD)</label><input type="text" id="plan-data" required></div>
+                <div class="form-group"><label>Hora (hh:mm)</label><input type="text" id="plan-hora"></div>
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="plan-tipo">
+                        <option value="Reforço">Reforço</option>
+                        <option value="Inglês">Inglês</option>
+                        <option value="Espanhol">Espanhol</option>
+                        <option value="Português">Português</option>
+                        <option value="Lição kids 7-9">Lição kids 7-9</option>
+                        <option value="Lição kids 4-6">Lição kids 4-6</option>
+                        <option value="Lição kids GC">Lição kids GC</option>
+                        <option value="Lição Link GC">Lição Link GC</option>
+                        <option value="Ministração livre Link">Ministração livre Link</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Matéria</label>
+                    <select id="plan-materia">
+                        <option value="Português">Português</option>
+                        <option value="Matemática">Matemática</option>
+                        <option value="Ciências">Ciências</option>
+                        <option value="História">História</option>
+                        <option value="Geografia">Geografia</option>
+                        <option value="Inglês">Inglês</option>
+                        <option value="Espanhol">Espanhol</option>
+                        <option value="Biologia">Biologia</option>
+                        <option value="Física">Física</option>
+                        <option value="Química">Química</option>
+                        <option value="Educação Física">Educação Física</option>
+                        <option value="Lição Bíblica">Lição Bíblica</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Conteúdo</label><textarea id="plan-conteudo" rows="3"></textarea></div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="plan-status">
+                        <option value="Pendente">Pendente</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Adiada">Adiada</option>
+                        <option value="Concluída">Concluída</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="btn-delete-plan" class="btn-danger hidden">Excluir</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
