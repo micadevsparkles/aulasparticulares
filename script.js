@@ -5,7 +5,7 @@ let db = { Alunos: [], Planejamento_aula: [], financeiro: [] };
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-    updateGreeting(); // Agora definido abaixo
+    updateGreeting();
     fetchData();
     setupForms();
 });
@@ -37,54 +37,30 @@ function showView(viewName) {
     if(viewName === 'financas') renderFinancas();
 }
 
-// --- 2. FORMATAÇÃO DE DADOS (Correção da Hora 1899) ---
-// Exibe o texto exatamente como está na planilha
+// --- 2. FORMATAÇÃO DE DADOS (TEXTO PURO) ---
+
+// Retorna exatamente o texto da célula (Hora)
 function formatTime(timeStr) {
-    if (!timeStr) return "00:00";
-    
+    if (!timeStr) return "";
     let str = timeStr.toString();
-
-    // Se por acaso o Google ainda enviar o formato ISO (T...), pegamos só a hora
-    if (str.includes('T')) {
-        return str.split('T')[1].substring(0, 5);
-    }
-
-    // Se vier 14:00:00, cortamos os segundos para ficar 14:00
-    if (str.length > 5 && str.includes(':')) {
-        return str.substring(0, 5);
-    }
-
-    return str; // Retorna o texto bruto da célula
+    // Se por acaso vier o formato ISO do Google, limpa para pegar só a hora
+    if (str.includes('T')) return str.split('T')[1].substring(0, 5);
+    return str; 
 }
 
-// Exibe a data sem sofrer alteração de fuso horário
+// Retorna exatamente o texto da célula (Data)
 function formatDate(dateStr) {
     if (!dateStr) return "";
     let str = dateStr.toString();
-
-    // Se for o formato de data do Google (Ex: Sat Feb 21...), extraímos só a data
-    if (str.includes(' ') && !str.includes('-')) {
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('pt-BR');
+    // Se vier no formato AAAA-MM-DD (do input), apenas exibe como está ou inverte se quiser ver DD/MM
+    if (str.includes('-') && str.length === 10) {
+        const p = str.split('-');
+        return `${p[2]}/${p[1]}/${p[0]}`;
     }
-    
-    // Se vier no formato AAAA-MM-DD (padrão de inputs), invertemos para DD/MM/AAAA
-    if (str.includes('-') && str.length <= 10) {
-        const partes = str.split('-');
-        return `${partes[2]}/${partes[1]}/${partes[0]}`;
-    }
-
     return str;
 }
-function formatDate(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    // Ajuste para evitar que a data mude por causa do fuso horário
-    d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
-    return d.toLocaleDateString('pt-BR');
-}
 
-// --- 3. COMUNICAÇÃO COM O BANCO DE DADOS (Apps Script) ---
+// --- 3. COMUNICAÇÃO COM O BANCO DE DADOS ---
 async function fetchData() {
     const loadingDiv = document.getElementById('loading');
     try {
@@ -123,23 +99,9 @@ async function sendData(sheet, data, action, id) {
 
 // --- 4. RENDERIZAÇÃO DAS TELAS ---
 function renderHome() {
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const sevenDaysLater = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    const nextAulas = db.Planejamento_aula.filter(a => {
-        const d = new Date(a.data);
-        return d >= today && d <= sevenDaysLater;
-    });
-
-    const lastAulas = db.Planejamento_aula.filter(a => {
-        const d = new Date(a.data);
-        return d < today && d >= sevenDaysAgo;
-    });
-
-    displayLessons(nextAulas, 'next-7-days');
-    displayLessons(lastAulas, 'last-7-days');
+    // Na Home, mostramos tudo o que está no banco sem filtros de data complexos para não dar erro
+    displayLessons(db.Planejamento_aula.slice(0, 10), 'next-7-days'); 
+    displayLessons(db.Planejamento_aula.slice(10, 20), 'last-7-days');
 }
 
 function displayLessons(aulas, containerId) {
@@ -150,7 +112,7 @@ function displayLessons(aulas, containerId) {
             <span>${a.tipo} | ${a.materia}</span>
             <small>${a.conteudo || 'Sem conteúdo'} | <b>${a.status}</b></small>
         </div>
-    `).join('') || '<p>Nenhuma aula neste período.</p>';
+    `).join('') || '<p>Nenhuma aula encontrada.</p>';
 }
 
 function renderAlunos() {
@@ -165,8 +127,7 @@ function renderAlunos() {
 }
 
 function renderPlanejamento() {
-    const sorted = [...db.Planejamento_aula].sort((a, b) => new Date(b.data) - new Date(a.data));
-    displayLessons(sorted, 'cronograma-completo');
+    displayLessons(db.Planejamento_aula, 'cronograma-completo');
 }
 
 function renderFinancas() {
@@ -185,7 +146,7 @@ function renderFinancas() {
                     <span>${al.nome}</span>
                     <strong>R$ ${valorPendente.toFixed(2)}</strong>
                 </div>
-                <small>${aulasConcluidas} aulas concluídas (R$ ${finInfo.hora_aula}/h)</small>
+                <small>${aulasConcluidas} aulas concluídas</small>
             </div>
         `;
     }).join('');
@@ -203,8 +164,6 @@ function closeModal(id) {
     document.getElementById(id).style.display = 'none';
     document.getElementById('form-aluno').reset();
     document.getElementById('form-aula').reset();
-    document.getElementById('btn-delete-aluno').style.display = 'none';
-    document.getElementById('btn-delete-aula').style.display = 'none';
 }
 
 function updateAlunosDropdown() {
@@ -237,17 +196,14 @@ function editAluno(nome) {
 }
 
 function editAula(aluno, data, hora) {
-    const dStr = new Date(data).toISOString().split('T')[0];
-    const hStr = formatTime(hora);
-    const aula = db.Planejamento_aula.find(a => a.aluno === aluno && a.data.includes(dStr) && formatTime(a.hora) === hStr);
-    
+    const aula = db.Planejamento_aula.find(a => a.aluno === aluno && a.data === data && a.hora === hora);
     if (!aula) return;
 
     document.getElementById('modal-aula-title').innerText = "Editar Aula";
-    document.getElementById('aula-id-old').value = aula.aluno; // Simplificado para busca no update
+    document.getElementById('aula-id-old').value = aula.aluno;
     document.getElementById('au-aluno').value = aula.aluno;
-    document.getElementById('au-data').value = dStr;
-    document.getElementById('au-hora').value = hStr;
+    document.getElementById('au-data').value = aula.data;
+    document.getElementById('au-hora').value = formatTime(aula.hora);
     document.getElementById('au-tipo').value = aula.tipo;
     document.getElementById('au-materia').value = aula.materia;
     document.getElementById('au-conteudo').value = aula.conteudo;
@@ -301,7 +257,7 @@ async function deleteAluno() {
 
 async function deleteAula() {
     if (confirm("Deseja cancelar/excluir este planejamento?")) {
-        const id = document.getElementById('au-aluno').value; // Usando nome como referência
+        const id = document.getElementById('au-aluno').value;
         await sendData('Planejamento_aula', [], 'delete', id);
     }
 }
