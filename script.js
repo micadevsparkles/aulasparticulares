@@ -19,17 +19,11 @@ function updateGreeting() {
 async function fetchData() {
     const loadingDiv = document.getElementById('loading');
     
-    // Verifica se a URL foi alterada
-    if (API_URL === 'https://script.google.com/macros/s/AKfycbzJz9_BK4CiNNaGsLHKrczTJ9URUf116KGqxdttFlsv50RfXlvQ0-3GwacJ5EbVSoBnXg/exec') {
-        loadingDiv.innerHTML = "Erro: Você esqueceu de colar a URL do Apps Script no script.js!";
-        return;
-    }
-
+    // Removi a verificação manual que estava travando o seu código
     try {
-        // O fetch para o Google Apps Script precisa seguir redirecionamentos
         const response = await fetch(API_URL);
         
-        if (!response.ok) throw new Error('Resposta da rede não foi legal');
+        if (!response.ok) throw new Error('A resposta do servidor não foi ok. Verifique se o script está publicado como "Anyone".');
         
         db = await response.json();
         
@@ -39,16 +33,17 @@ async function fetchData() {
     } catch (e) {
         console.error("Erro ao buscar dados:", e);
         loadingDiv.innerHTML = `
-            <div style="padding: 20px; text-align: center;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: red;"></i>
-                <p>Erro ao carregar dados do Google Sheets.</p>
-                <small>${e.message}</small><br>
-                <button onclick="location.reload()" style="margin-top:10px">Tentar Novamente</button>
+            <div style="padding: 20px; text-align: center; color: #3c4043;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #d93025;"></i>
+                <p><strong>Erro de Conexão</strong></p>
+                <small style="display: block; margin-bottom: 10px;">${e.message}</small>
+                <button onclick="location.reload()" style="padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Tentar Novamente
+                </button>
             </div>
         `;
     }
 }
-
 function toggleMenu() {
     document.getElementById('sidebar').classList.toggle('active');
 }
