@@ -29,14 +29,46 @@ function formatDate(dateStr) {
 async function fetchData() {
     const loadingDiv = document.getElementById('loading');
     try {
+        console.log("Iniciando busca de dados...");
         const response = await fetch(API_URL);
-        db = await response.json();
-        loadingDiv.style.display = 'none';
+        
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Validação básica dos dados recebidos
+        if (!data.Alunos || !data.Planejamento_aula) {
+            throw new Error("Dados recebidos em formato inválido ou abas da planilha faltando.");
+        }
+
+        db = data;
+        console.log("Dados carregados com sucesso:", db);
+        
         renderHome();
         updateAlunosDropdown();
+
     } catch (e) {
-        console.error(e);
-        loadingDiv.innerHTML = "Erro ao conectar. Verifique a internet.";
+        console.error("Falha no fetchData:", e);
+        loadingDiv.innerHTML = `
+            <div style="padding: 20px; text-align: center; color: #3c4043;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #d93025;"></i>
+                <p><strong>Não foi possível carregar os dados</strong></p>
+                <small style="display: block; margin-bottom: 10px; color: #666;">
+                    Provavelmente um erro de permissão ou nome de aba na planilha.
+                </small>
+                <code style="background: #eee; padding: 5px; font-size: 0.8rem;">${e.message}</code><br><br>
+                <button onclick="location.reload()" style="padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Tentar Novamente
+                </button>
+            </div>
+        `;
+    } finally {
+        // Isso garante que o overlay suma independentemente de erro ou sucesso
+        if (db.Alunos.length > 0 || db.Planejamento_aula.length > 0) {
+            loadingDiv.style.display = 'none';
+        }
     }
 }
 
