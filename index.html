@@ -63,6 +63,71 @@
         </section>
     </main>
 
+    <div id="modal-aluno" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <h2 id="modal-aluno-title">Novo Aluno</h2>
+            <form id="form-aluno">
+                <input type="hidden" id="aluno-id-old">
+                <input type="text" id="al-nome" placeholder="Nome Completo" required>
+                <input type="text" id="al-end" placeholder="Endereço (Rua, nº)">
+                <input type="text" id="al-cid" placeholder="Cidade">
+                <input type="text" id="al-bairro" placeholder="Bairro">
+                <input type="text" id="al-resp" placeholder="Responsável">
+                <input type="text" id="al-whats" placeholder="WhatsApp Responsável">
+                <select id="al-tipo">
+                    <option value="Reforço">Reforço</option>
+                    <option value="Inglês">Inglês</option>
+                    <option value="Espanhol">Espanhol</option>
+                    <option value="Português">Português</option>
+                    <option value="Lição kids 7-9">Lição kids 7-9</option>
+                    <option value="Lição kids 4-6">Lição kids 4-6</option>
+                    <option value="Lição kids GC">Lição kids GC</option>
+                    <option value="Lição Link GC">Lição Link GC</option>
+                    <option value="Ministração livre Link">Ministração livre Link</option>
+                </select>
+                <input type="text" id="al-dias" placeholder="Dias (Segunda, Terça...)">
+                <div class="row">
+                    <input type="time" id="al-hora">
+                    <input type="number" id="al-duracao" placeholder="Duração (h)">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('modal-aluno')">Cancelar</button>
+                    <button type="button" id="btn-delete-aluno" class="btn-delete" style="display:none;" onclick="deleteAluno()">Excluir</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-aula" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <h2 id="modal-aula-title">Novo Planejamento</h2>
+            <form id="form-aula">
+                <input type="hidden" id="aula-id-old">
+                <select id="au-aluno" required></select>
+                <input type="date" id="au-data" required>
+                <input type="time" id="au-hora" required>
+                <select id="au-tipo">
+                    <option value="Reforço">Reforço</option>
+                    <option value="Inglês">Inglês</option>
+                    </select>
+                <input type="text" id="au-materia" placeholder="Matéria">
+                <textarea id="au-conteudo" placeholder="Conteúdo da aula"></textarea>
+                <select id="au-status">
+                    <option value="Pendente">Pendente</option>
+                    <option value="Concluída">Concluída</option>
+                    <option value="Cancelada">Cancelada</option>
+                    <option value="Adiada">Adiada</option>
+                </select>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('modal-aula')">Cancelar</button>
+                    <button type="button" id="btn-delete-aula" class="btn-delete" style="display:none;" onclick="deleteAula()">Excluir</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="loading" class="overlay">Carregando dados...</div>
 
     <script src="script.js"></script>
