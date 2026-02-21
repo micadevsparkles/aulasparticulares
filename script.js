@@ -1,91 +1,112 @@
+// Configuração Inicial
 const API_URL = 'https://script.google.com/macros/s/AKfycbzJz9_BK4CiNNaGsLHKrczTJ9URUf116KGqxdttFlsv50RfXlvQ0-3GwacJ5EbVSoBnXg/exec';
 
 let db = { Alunos: [], Planejamento_aula: [], financeiro: [] };
 
+// Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-    updateGreeting();
+    updateGreeting(); // Agora definido abaixo
     fetchData();
     setupForms();
 });
 
-// --- SISTEMA DE HORAS E DATAS ---
+// --- 1. FUNÇÕES DE INTERFACE E SAUDAÇÃO ---
+function updateGreeting() {
+    const hr = new Date().getHours();
+    let msg = "Boa noite";
+    if (hr < 12) msg = "Bom dia";
+    else if (hr < 18) msg = "Boa tarde";
+    const greetingElement = document.getElementById('greeting');
+    if (greetingElement) greetingElement.innerText = `${msg}, Micael.`;
+}
+
+function toggleMenu() {
+    document.getElementById('sidebar').classList.toggle('active');
+}
+
+function showView(viewName) {
+    document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+    const targetView = document.getElementById(`view-${viewName}`);
+    if (targetView) targetView.style.display = 'block';
+    
+    toggleMenu();
+    
+    if(viewName === 'home') renderHome();
+    if(viewName === 'alunos') renderAlunos();
+    if(viewName === 'planejamento') renderPlanejamento();
+    if(viewName === 'financas') renderFinancas();
+}
+
+// --- 2. FORMATAÇÃO DE DADOS (Correção da Hora 1899) ---
 function formatTime(timeStr) {
     if (!timeStr) return "00:00";
-    // Se vier o formato ISO do Google (1899-12-30T20:34...), extrai o HH:mm
-    if (timeStr.toString().includes('T')) {
-        const parts = timeStr.split('T')[1].split(':');
-        return `${parts[0]}:${parts[1]}`;
+    // Se for o formato de data completa do Google Sheets (Ex: 1899-12-30T20:30...)
+    if (typeof timeStr === 'string' && timeStr.includes('T')) {
+        return timeStr.split('T')[1].substring(0, 5);
     }
-    return timeStr;
+    return timeStr.toString().substring(0, 5);
 }
 
 function formatDate(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
+    // Ajuste para evitar que a data mude por causa do fuso horário
+    d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
     return d.toLocaleDateString('pt-BR');
 }
 
-// --- BUSCA E NAVEGAÇÃO ---
+// --- 3. COMUNICAÇÃO COM O BANCO DE DADOS (Apps Script) ---
 async function fetchData() {
     const loadingDiv = document.getElementById('loading');
     try {
-        console.log("Iniciando busca de dados...");
         const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Erro na rede');
+        db = await response.json();
         
-        if (!response.ok) {
-            throw new Error(`Erro HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Validação básica dos dados recebidos
-        if (!data.Alunos || !data.Planejamento_aula) {
-            throw new Error("Dados recebidos em formato inválido ou abas da planilha faltando.");
-        }
-
-        db = data;
-        console.log("Dados carregados com sucesso:", db);
-        
+        loadingDiv.style.display = 'none';
         renderHome();
         updateAlunosDropdown();
-
     } catch (e) {
-        console.error("Falha no fetchData:", e);
-        loadingDiv.innerHTML = `
-            <div style="padding: 20px; text-align: center; color: #3c4043;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #d93025;"></i>
-                <p><strong>Não foi possível carregar os dados</strong></p>
-                <small style="display: block; margin-bottom: 10px; color: #666;">
-                    Provavelmente um erro de permissão ou nome de aba na planilha.
-                </small>
-                <code style="background: #eee; padding: 5px; font-size: 0.8rem;">${e.message}</code><br><br>
-                <button onclick="location.reload()" style="padding: 8px 16px; background: #1a73e8; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    Tentar Novamente
-                </button>
-            </div>
-        `;
-    } finally {
-        // Isso garante que o overlay suma independentemente de erro ou sucesso
-        if (db.Alunos.length > 0 || db.Planejamento_aula.length > 0) {
-            loadingDiv.style.display = 'none';
-        }
+        console.error("Erro ao buscar dados:", e);
+        loadingDiv.innerHTML = `<div style="text-align:center; padding:20px;">
+            <p>Erro ao carregar dados. Verifique a conexão.</p>
+            <button onclick="location.reload()">Repetir</button>
+        </div>`;
     }
 }
 
-// --- RENDERIZAÇÃO ---
+async function sendData(sheet, data, action, id) {
+    document.getElementById('loading').style.display = 'flex';
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action, sheet, data, id })
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            location.reload(); 
+        }
+    } catch (e) {
+        alert("Erro ao processar solicitação.");
+        document.getElementById('loading').style.display = 'none';
+    }
+}
+
+// --- 4. RENDERIZAÇÃO DAS TELAS ---
 function renderHome() {
-    const today = new Date().setHours(0,0,0,0);
-    const nextWeek = today + (7 * 24 * 60 * 60 * 1000);
-    const lastWeek = today - (7 * 24 * 60 * 60 * 1000);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const sevenDaysLater = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const nextAulas = db.Planejamento_aula.filter(a => {
-        const d = new Date(a.data).getTime();
-        return d >= today && d <= nextWeek;
+        const d = new Date(a.data);
+        return d >= today && d <= sevenDaysLater;
     });
 
     const lastAulas = db.Planejamento_aula.filter(a => {
-        const d = new Date(a.data).getTime();
-        return d < today && d >= lastWeek;
+        const d = new Date(a.data);
+        return d < today && d >= sevenDaysAgo;
     });
 
     displayLessons(nextAulas, 'next-7-days');
@@ -95,12 +116,12 @@ function renderHome() {
 function displayLessons(aulas, containerId) {
     const container = document.getElementById(containerId);
     container.innerHTML = aulas.map(a => `
-        <div class="item-aula" onclick="editAula('${a.aluno}', '${a.data}', '${formatTime(a.hora)}')">
+        <div class="item-aula" onclick="editAula('${a.aluno}', '${a.data}', '${a.hora}')">
             <strong>${a.aluno}</strong> - ${formatDate(a.data)} às ${formatTime(a.hora)}
             <span>${a.tipo} | ${a.materia}</span>
-            <small>${a.conteudo || ''} | <b>${a.status}</b></small>
+            <small>${a.conteudo || 'Sem conteúdo'} | <b>${a.status}</b></small>
         </div>
-    `).join('') || '<p>Sem aulas para este período.</p>';
+    `).join('') || '<p>Nenhuma aula neste período.</p>';
 }
 
 function renderAlunos() {
@@ -114,7 +135,37 @@ function renderAlunos() {
     `).join('');
 }
 
-// --- MODAIS E CRUD ---
+function renderPlanejamento() {
+    const sorted = [...db.Planejamento_aula].sort((a, b) => new Date(b.data) - new Date(a.data));
+    displayLessons(sorted, 'cronograma-completo');
+}
+
+function renderFinancas() {
+    let totalGeral = 0;
+    const container = document.getElementById('lista-financeiro');
+    
+    const html = db.Alunos.map(al => {
+        const aulasConcluidas = db.Planejamento_aula.filter(p => p.aluno === al.nome && p.status === 'Concluída').length;
+        const finInfo = db.financeiro.find(f => f.aluno === al.nome) || { hora_aula: 0 };
+        const valorPendente = (finInfo.hora_aula || 0) * (al.duracao || 0) * aulasConcluidas;
+        totalGeral += valorPendente;
+
+        return `
+            <div class="card">
+                <div style="display:flex; justify-content:space-between;">
+                    <span>${al.nome}</span>
+                    <strong>R$ ${valorPendente.toFixed(2)}</strong>
+                </div>
+                <small>${aulasConcluidas} aulas concluídas (R$ ${finInfo.hora_aula}/h)</small>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = html;
+    document.getElementById('total-geral').innerText = `R$ ${totalGeral.toFixed(2)}`;
+}
+
+// --- 5. MODAIS E FORMULÁRIOS (CRUD) ---
 function openModal(id) {
     document.getElementById(id).style.display = 'flex';
 }
@@ -123,6 +174,16 @@ function closeModal(id) {
     document.getElementById(id).style.display = 'none';
     document.getElementById('form-aluno').reset();
     document.getElementById('form-aula').reset();
+    document.getElementById('btn-delete-aluno').style.display = 'none';
+    document.getElementById('btn-delete-aula').style.display = 'none';
+}
+
+function updateAlunosDropdown() {
+    const select = document.getElementById('au-aluno');
+    if(select) {
+        select.innerHTML = '<option value="">Selecione o Aluno</option>' + 
+            db.Alunos.map(al => `<option value="${al.nome}">${al.nome}</option>`).join('');
+    }
 }
 
 function editAluno(nome) {
@@ -146,6 +207,27 @@ function editAluno(nome) {
     openModal('modal-aluno');
 }
 
+function editAula(aluno, data, hora) {
+    const dStr = new Date(data).toISOString().split('T')[0];
+    const hStr = formatTime(hora);
+    const aula = db.Planejamento_aula.find(a => a.aluno === aluno && a.data.includes(dStr) && formatTime(a.hora) === hStr);
+    
+    if (!aula) return;
+
+    document.getElementById('modal-aula-title').innerText = "Editar Aula";
+    document.getElementById('aula-id-old').value = aula.aluno; // Simplificado para busca no update
+    document.getElementById('au-aluno').value = aula.aluno;
+    document.getElementById('au-data').value = dStr;
+    document.getElementById('au-hora').value = hStr;
+    document.getElementById('au-tipo').value = aula.tipo;
+    document.getElementById('au-materia').value = aula.materia;
+    document.getElementById('au-conteudo').value = aula.conteudo;
+    document.getElementById('au-status').value = aula.status;
+
+    document.getElementById('btn-delete-aula').style.display = 'block';
+    openModal('modal-aula');
+}
+
 function setupForms() {
     document.getElementById('form-aluno').onsubmit = async (e) => {
         e.preventDefault();
@@ -162,7 +244,6 @@ function setupForms() {
             document.getElementById('al-hora').value,
             document.getElementById('al-duracao').value
         ];
-        
         await sendData('Alunos', data, oldId ? 'update' : 'create', oldId);
     };
 
@@ -182,38 +263,35 @@ function setupForms() {
     };
 }
 
-async function sendData(sheet, data, action, id) {
-    document.getElementById('loading').style.display = 'flex';
-    try {
-        await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action, sheet, data, id })
-        });
-        location.reload(); // Recarrega para atualizar dados
-    } catch (e) {
-        alert("Erro ao salvar dados.");
-        document.getElementById('loading').style.display = 'none';
+async function deleteAluno() {
+    if (confirm("Deseja realmente excluir este aluno?")) {
+        const id = document.getElementById('aluno-id-old').value;
+        await sendData('Alunos', [], 'delete', id);
     }
 }
 
-async function deleteAluno() {
-    if (!confirm("Excluir este aluno permanentemente?")) return;
-    const id = document.getElementById('aluno-id-old').value;
-    await sendData('Alunos', [], 'delete', id);
+async function deleteAula() {
+    if (confirm("Deseja cancelar/excluir este planejamento?")) {
+        const id = document.getElementById('au-aluno').value; // Usando nome como referência
+        await sendData('Planejamento_aula', [], 'delete', id);
+    }
 }
 
-function updateAlunosDropdown() {
-    const select = document.getElementById('au-aluno');
-    select.innerHTML = db.Alunos.map(al => `<option value="${al.nome}">${al.nome}</option>`).join('');
+// --- 6. BUSCAS ---
+function filterAlunos() {
+    const term = document.getElementById('search-aluno').value.toLowerCase();
+    const filtered = db.Alunos.filter(al => al.nome.toLowerCase().includes(term));
+    const container = document.getElementById('lista-alunos');
+    container.innerHTML = filtered.map(al => `
+        <div class="item-aluno" onclick="editAluno('${al.nome}')">
+            <strong>${al.nome}</strong>
+            <span>${al.tipo} - ${al.dias} às ${formatTime(al.hora)}</span>
+        </div>
+    `).join('');
 }
 
-// Funções de utilidade mantidas
-function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); }
-function showView(viewName) {
-    document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
-    document.getElementById(`view-${viewName}`).style.display = 'block';
-    if(viewName === 'alunos') renderAlunos();
-    if(viewName === 'planejamento') renderPlanejamento();
-    if(viewName === 'financas') renderFinancas();
-    toggleMenu();
+function filterPlanejamento() {
+    const term = document.getElementById('search-aula').value.toLowerCase();
+    const filtered = db.Planejamento_aula.filter(a => a.aluno.toLowerCase().includes(term) || a.materia.toLowerCase().includes(term));
+    displayLessons(filtered, 'cronograma-completo');
 }
