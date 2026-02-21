@@ -38,27 +38,44 @@ function showView(viewName) {
 }
 
 // --- 2. FORMATAÇÃO DE DADOS (Correção da Hora 1899) ---
+// Exibe o texto exatamente como está na planilha
 function formatTime(timeStr) {
     if (!timeStr) return "00:00";
     
-    const str = timeStr.toString();
-    
-    // Se vier o formato ISO (1899-12-30T14:00:00.000Z)
+    let str = timeStr.toString();
+
+    // Se por acaso o Google ainda enviar o formato ISO (T...), pegamos só a hora
     if (str.includes('T')) {
-        // Pegamos a parte após o T e antes dos segundos
-        const timePart = str.split('T')[1]; 
-        return timePart.substring(0, 5); 
-    }
-    
-    // Se vier apenas como string (14:00:00)
-    if (str.includes(':')) {
-        const parts = str.split(':');
-        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+        return str.split('T')[1].substring(0, 5);
     }
 
-    return str.substring(0, 5);
+    // Se vier 14:00:00, cortamos os segundos para ficar 14:00
+    if (str.length > 5 && str.includes(':')) {
+        return str.substring(0, 5);
+    }
+
+    return str; // Retorna o texto bruto da célula
 }
 
+// Exibe a data sem sofrer alteração de fuso horário
+function formatDate(dateStr) {
+    if (!dateStr) return "";
+    let str = dateStr.toString();
+
+    // Se for o formato de data do Google (Ex: Sat Feb 21...), extraímos só a data
+    if (str.includes(' ') && !str.includes('-')) {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('pt-BR');
+    }
+    
+    // Se vier no formato AAAA-MM-DD (padrão de inputs), invertemos para DD/MM/AAAA
+    if (str.includes('-') && str.length <= 10) {
+        const partes = str.split('-');
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+
+    return str;
+}
 function formatDate(dateStr) {
     if (!dateStr) return "";
     const d = new Date(dateStr);
