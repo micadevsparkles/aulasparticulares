@@ -17,13 +17,35 @@ function updateGreeting() {
 }
 
 async function fetchData() {
+    const loadingDiv = document.getElementById('loading');
+    
+    // Verifica se a URL foi alterada
+    if (API_URL === 'https://script.google.com/macros/s/AKfycbzJz9_BK4CiNNaGsLHKrczTJ9URUf116KGqxdttFlsv50RfXlvQ0-3GwacJ5EbVSoBnXg/exec') {
+        loadingDiv.innerHTML = "Erro: Você esqueceu de colar a URL do Apps Script no script.js!";
+        return;
+    }
+
     try {
+        // O fetch para o Google Apps Script precisa seguir redirecionamentos
         const response = await fetch(API_URL);
+        
+        if (!response.ok) throw new Error('Resposta da rede não foi legal');
+        
         db = await response.json();
-        document.getElementById('loading').style.display = 'none';
-        renderHome();Use Control + Shift + m to toggle the tab key moving foc
+        
+        loadingDiv.style.display = 'none';
+        renderHome();
+        console.log("Dados carregados com sucesso:", db);
     } catch (e) {
         console.error("Erro ao buscar dados:", e);
+        loadingDiv.innerHTML = `
+            <div style="padding: 20px; text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: red;"></i>
+                <p>Erro ao carregar dados do Google Sheets.</p>
+                <small>${e.message}</small><br>
+                <button onclick="location.reload()" style="margin-top:10px">Tentar Novamente</button>
+            </div>
+        `;
     }
 }
 
