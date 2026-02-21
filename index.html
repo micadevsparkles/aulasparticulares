@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micael - Gestão de Aulas</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <div id="greeting">Carregando...</div>
+        <div class="menu-icon" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
+    </header>
+
+    <nav id="sidebar">
+        <div class="close-menu" onclick="toggleMenu()">&times;</div>
+        <ul>
+            <li onclick="showView('home')"><i class="fas fa-home"></i> Dashboard</li>
+            <li onclick="showView('alunos')"><i class="fas fa-user-graduate"></i> Alunos</li>
+            <li onclick="showView('planejamento')"><i class="fas fa-calendar-alt"></i> Planejamento</li>
+            <li onclick="showView('financas')"><i class="fas fa-wallet"></i> Finanças</li>
+        </ul>
+    </nav>
+
+    <main id="content">
+        <section id="view-home" class="view">
+            <div class="card">
+                <h3><i class="fas fa-clock"></i> Próximos 7 Dias</h3>
+                <div id="next-7-days" class="list-container"></div>
+            </div>
+            <div class="card">
+                <h3><i class="fas fa-history"></i> Últimos 7 Dias</h3>
+                <div id="last-7-days" class="list-container"></div>
+            </div>
+        </section>
+
+        <section id="view-alunos" class="view" style="display:none;">
+            <div class="view-header">
+                <button class="btn-add" onclick="openModal('modal-aluno')">+</button>
+                <input type="text" id="search-aluno" placeholder="Pesquisar aluno..." oninput="filterAlunos()">
+            </div>
+            <div id="lista-alunos" class="list-container"></div>
+        </section>
+
+        <section id="view-planejamento" class="view" style="display:none;">
+            <div class="view-header">
+                <button class="btn-add" onclick="openModal('modal-aula')">+</button>
+                <input type="text" id="search-aula" placeholder="Pesquisar aula..." oninput="filterPlanejamento()">
+            </div>
+            <div id="cronograma-completo" class="list-container"></div>
+        </section>
+
+        <section id="view-financas" class="view" style="display:none;">
+            <div class="total-badge">
+                <span>Total Pendente:</span>
+                <strong id="total-geral">R$ 0,00</strong>
+            </div>
+            <div id="lista-financeiro" class="list-container"></div>
+        </section>
+    </main>
+
+    <div id="loading" class="overlay">Carregando dados...</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
