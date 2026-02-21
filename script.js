@@ -40,11 +40,23 @@ function showView(viewName) {
 // --- 2. FORMATAÇÃO DE DADOS (Correção da Hora 1899) ---
 function formatTime(timeStr) {
     if (!timeStr) return "00:00";
-    // Se for o formato de data completa do Google Sheets (Ex: 1899-12-30T20:30...)
-    if (typeof timeStr === 'string' && timeStr.includes('T')) {
-        return timeStr.split('T')[1].substring(0, 5);
+    
+    const str = timeStr.toString();
+    
+    // Se vier o formato ISO (1899-12-30T14:00:00.000Z)
+    if (str.includes('T')) {
+        // Pegamos a parte após o T e antes dos segundos
+        const timePart = str.split('T')[1]; 
+        return timePart.substring(0, 5); 
     }
-    return timeStr.toString().substring(0, 5);
+    
+    // Se vier apenas como string (14:00:00)
+    if (str.includes(':')) {
+        const parts = str.split(':');
+        return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+
+    return str.substring(0, 5);
 }
 
 function formatDate(dateStr) {
