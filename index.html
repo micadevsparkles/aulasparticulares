@@ -28,16 +28,15 @@
         </nav>
 
         <main class="main-content">
-            
             <section id="home-view" class="view active">
                 <div class="schedule-container">
-                    <h2>Próximos 7 dias</h2>
+                    <h2 class="view-title">Próximos 7 dias</h2>
                     <div id="next-7-days" class="cards-grid">
                         <p class="empty-msg">Carregando aulas...</p>
                     </div>
                 </div>
                 <div class="schedule-container">
-                    <h2>Últimos 7 dias</h2>
+                    <h2 class="view-title">Últimos 7 dias</h2>
                     <div id="last-7-days" class="cards-grid">
                         <p class="empty-msg">Carregando aulas...</p>
                     </div>
@@ -59,7 +58,7 @@
                     <h2>Cronograma Completo</h2>
                     <input type="text" id="search-planejamento" class="search-bar" placeholder="Pesquisar aula...">
                 </div>
-                <div id="planejamento-list" class="cards-grid full-schedule"></div>
+                <div id="planejamento-list" class="cards-grid"></div>
             </section>
 
             <section id="financas-view" class="view hidden">
@@ -72,7 +71,6 @@
                     <div id="financas-list" class="cards-grid"></div>
                 </div>
             </section>
-
         </main>
     </div>
 
@@ -87,28 +85,19 @@
             <form id="form-aluno">
                 <input type="hidden" id="aluno-rowIndex">
                 <div class="form-group"><label>Nome</label><input type="text" id="aluno-nome" required></div>
-                <div class="form-group"><label>Endereço</label><input type="text" id="aluno-endereco"></div>
-                <div class="form-group"><label>Cidade</label><input type="text" id="aluno-cidade"></div>
-                <div class="form-group"><label>Bairro</label><input type="text" id="aluno-bairro"></div>
                 <div class="form-group"><label>Responsável</label><input type="text" id="aluno-responsavel"></div>
-                <div class="form-group"><label>WhatsApp Responsável</label><input type="text" id="aluno-whatsapp"></div>
+                <div class="form-group"><label>WhatsApp</label><input type="text" id="aluno-whatsapp"></div>
                 <div class="form-group">
                     <label>Tipo</label>
                     <select id="aluno-tipo">
                         <option value="Reforço">Reforço</option>
                         <option value="Inglês">Inglês</option>
-                        <option value="Espanhol">Espanhol</option>
-                        <option value="Português">Português</option>
-                        <option value="Lição kids 7-9">Lição kids 7-9</option>
-                        <option value="Lição kids 4-6">Lição kids 4-6</option>
-                        <option value="Lição kids GC">Lição kids GC</option>
-                        <option value="Lição Link GC">Lição Link GC</option>
-                        <option value="Ministração livre Link">Ministração livre Link</option>
+                        <option value="Lição kids">Lição kids</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Dias (Ex: Segunda, Terça)</label><input type="text" id="aluno-dias"></div>
-                <div class="form-group"><label>Hora (hh:mm)</label><input type="text" id="aluno-hora"></div>
-                <div class="form-group"><label>Duração (horas, ex: 1.5)</label><input type="text" id="aluno-duracao"></div>
+                <div class="form-group"><label>Dias</label><input type="text" id="aluno-dias"></div>
+                <div class="form-group"><label>Hora</label><input type="text" id="aluno-hora"></div>
+                <div class="form-group"><label>Duração</label><input type="text" id="aluno-duracao"></div>
                 <div class="form-actions">
                     <button type="button" id="btn-delete-aluno" class="btn-danger hidden">Excluir</button>
                     <button type="submit" class="btn-save">Salvar</button>
@@ -123,41 +112,15 @@
             <h2 id="modal-planejamento-title">Adicionar Aula</h2>
             <form id="form-planejamento">
                 <input type="hidden" id="plan-rowIndex">
-                <div class="form-group">
-                    <label>Aluno</label>
-                    <select id="plan-aluno" required></select>
-                </div>
-                <div class="form-group"><label>Data (Texto livre ou YYYY-MM-DD)</label><input type="text" id="plan-data" required></div>
-                <div class="form-group"><label>Hora (hh:mm)</label><input type="text" id="plan-hora"></div>
-                <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="plan-tipo">
-                        <option value="Reforço">Reforço</option>
-                        <option value="Inglês">Inglês</option>
-                        <option value="Espanhol">Espanhol</option>
-                        <option value="Português">Português</option>
-                        <option value="Lição kids 7-9">Lição kids 7-9</option>
-                        <option value="Lição kids 4-6">Lição kids 4-6</option>
-                        <option value="Lição kids GC">Lição kids GC</option>
-                        <option value="Lição Link GC">Lição Link GC</option>
-                        <option value="Ministração livre Link">Ministração livre Link</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Aluno</label><select id="plan-aluno" required></select></div>
+                <div class="form-group"><label>Data</label><input type="text" id="plan-data" required></div>
+                <div class="form-group"><label>Hora</label><input type="text" id="plan-hora"></div>
                 <div class="form-group">
                     <label>Matéria</label>
                     <select id="plan-materia">
                         <option value="Português">Português</option>
                         <option value="Matemática">Matemática</option>
-                        <option value="Ciências">Ciências</option>
-                        <option value="História">História</option>
-                        <option value="Geografia">Geografia</option>
                         <option value="Inglês">Inglês</option>
-                        <option value="Espanhol">Espanhol</option>
-                        <option value="Biologia">Biologia</option>
-                        <option value="Física">Física</option>
-                        <option value="Química">Química</option>
-                        <option value="Educação Física">Educação Física</option>
-                        <option value="Lição Bíblica">Lição Bíblica</option>
                     </select>
                 </div>
                 <div class="form-group"><label>Conteúdo</label><textarea id="plan-conteudo" rows="3"></textarea></div>
@@ -165,9 +128,8 @@
                     <label>Status</label>
                     <select id="plan-status">
                         <option value="Pendente">Pendente</option>
-                        <option value="Cancelada">Cancelada</option>
-                        <option value="Adiada">Adiada</option>
                         <option value="Concluída">Concluída</option>
+                        <option value="Cancelada">Cancelada</option>
                     </select>
                 </div>
                 <div class="form-actions">
