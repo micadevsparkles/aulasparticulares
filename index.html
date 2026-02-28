@@ -32,15 +32,15 @@
             <section id="home-view" class="view active">
                 <div class="schedule-container">
                     <h2>Próximos 7 dias</h2>
-                    <ul id="next-7-days" class="schedule-list">
-                        <li class="empty-msg">Carregando aulas...</li>
-                    </ul>
+                    <div id="next-7-days" class="cards-grid">
+                        <p class="empty-msg">Carregando aulas...</p>
+                    </div>
                 </div>
                 <div class="schedule-container">
                     <h2>Últimos 7 dias</h2>
-                    <ul id="last-7-days" class="schedule-list">
-                        <li class="empty-msg">Carregando aulas...</li>
-                    </ul>
+                    <div id="last-7-days" class="cards-grid">
+                        <p class="empty-msg">Carregando aulas...</p>
+                    </div>
                 </div>
             </section>
 
@@ -50,7 +50,7 @@
                     <h2>Lista de Alunos</h2>
                     <input type="text" id="search-alunos" class="search-bar" placeholder="Pesquisar aluno...">
                 </div>
-                <ul id="alunos-list" class="data-list"></ul>
+                <div id="alunos-list" class="cards-grid"></div>
             </section>
 
             <section id="planejamento-view" class="view hidden">
@@ -59,7 +59,7 @@
                     <h2>Cronograma Completo</h2>
                     <input type="text" id="search-planejamento" class="search-bar" placeholder="Pesquisar aula...">
                 </div>
-                <ul id="planejamento-list" class="schedule-list full-schedule"></ul>
+                <div id="planejamento-list" class="cards-grid full-schedule"></div>
             </section>
 
             <section id="financas-view" class="view hidden">
@@ -69,14 +69,14 @@
                 </div>
                 <div class="finance-list-container">
                     <h3>Valores Pendentes por Aluno</h3>
-                    <ul id="financas-list" class="data-list"></ul>
+                    <div id="financas-list" class="cards-grid"></div>
                 </div>
             </section>
 
         </main>
     </div>
 
-    <div id="loader" class="loader-overlay">
+    <div id="loader" class="loader-overlay hidden">
         <div class="spinner"></div>
     </div>
 
